@@ -2,6 +2,7 @@ package com.rosthem.back_end.controller;
 
 import com.rosthem.back_end.dto.RegisteredUser;
 import com.rosthem.back_end.dto.SaveUser;
+import com.rosthem.back_end.dto.UserDTO;
 import com.rosthem.back_end.persistence.entitiy.Apartment;
 import com.rosthem.back_end.persistence.entitiy.User;
 import com.rosthem.back_end.service.UserService;
@@ -37,12 +38,21 @@ public class CustomerController {
 
     @PreAuthorize("hasAuthority('READ_ALL_USERS')")
     @GetMapping
-    public ResponseEntity<Page<User>> findAll(Pageable pageable) {
+    public ResponseEntity<Page<UserDTO>> findAll(Pageable pageable) {
+        Page<User> usersPage = userService.findAll(pageable);
 
-        Page<User> UsersPage = userService.findAll(pageable);
-
-        if (UsersPage.hasContent()) {
-            return ResponseEntity.ok(UsersPage);
+        if (usersPage.hasContent()) {
+            Page<UserDTO> userDTOs = usersPage.map(user -> {
+                UserDTO dto = new UserDTO();
+                dto.setId(user.getId());
+                dto.setName(user.getName());
+                dto.setUsername(user.getUsername());
+                dto.setEmail(user.getEmail());
+                dto.setTelephoneNumber(user.getTelephoneNumber());
+                dto.setRole(user.getRole());
+                return dto;
+            });
+            return ResponseEntity.ok(userDTOs);
         }
         return ResponseEntity.notFound().build();
     }
